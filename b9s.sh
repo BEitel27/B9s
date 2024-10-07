@@ -217,7 +217,7 @@ delete_resource() {
         local exit_code=$?
         
         if [[ $exit_code -eq 0 ]]; then
-            kubectl delete $resource_type $resource_name -n $namespace
+            kubectl delete $resource_type $resource_name -n $namespace &
             break
         fi
     done
