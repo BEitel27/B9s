@@ -212,8 +212,14 @@ delete_resource() {
     local resource_name="$2"
     local selected_namespaces="$3"
 
-    for namespace in ${selected_namespaces[@]}; do
-        kubectl delete $resource_type $resource_name -n $namespace &
+    for namespace in ${SELECTED_NAMESPACES[@]}; do
+        kubectl get $resource_type -n $namespace | grep $resource_name > /dev/null 2>&1
+        local exit_code=$?
+        
+        if [[ $exit_code -eq 0 ]]; then
+            kubectl delete $resource_type $resource_name -n $namespace
+            break
+        fi
     done
 }
 
@@ -486,7 +492,7 @@ show_namespaces() {
     done
     
     # Use checklist to select namespaces
-    SELECTED_NAMESPACES=$(whiptail --title "Select Namespaces" --checklist "Choose namespaces (Press SPACE to select):" 25 75 16 "${CHECKLIST_OPTIONS[@]}" 3>&1 1>&2 2>&3)
+    SELECTED_NAMESPACES=$(whiptail --title "Select Namespaces" --checklist "Choose namespaces (Press SPACE to select):" 35 100 30 "${CHECKLIST_OPTIONS[@]}" 3>&1 1>&2 2>&3)
     
     # Remove quotes and convert the selected namespaces string to an array
     SELECTED_NAMESPACES=$(echo $SELECTED_NAMESPACES | sed 's/"//g')
@@ -582,5 +588,7 @@ actsellistbox=black,cyan
 checkbox=cyan,black
 actcheckbox=black,cyan
 '
+
+export PATH=$PATH:/usr/local/bin   # May be needed for some systems to find kubectl command
 
 main_menu
